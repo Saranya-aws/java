@@ -1,0 +1,17 @@
+// Sample Java Program
+public class SampleJava {
+
+    // Main method: entry point of the program
+    public static void main(String[] args) {
+        System.out.println("Hello, World!"); // Print to console
+
+        // Call a sample method
+        int result = addNumbers(5, 10);
+        System.out.println("Sum of 5 and 10 is: " + result);
+    }
+
+    // Sample method to add two numbers
+    public static int addNumbers(int a, int b) {
+        return a + b;
+    }
+}
