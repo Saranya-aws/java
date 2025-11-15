@@ -10,7 +10,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Clone the Git repository
-                git branch: 'main', url: 'https://github.com/username/your-java-project.git'
+                git branch: 'main', url: 'https://github.com/Saranya-aws/java.git'
             }
         }
 
