@@ -1,0 +1,47 @@
+pipeline {
+    agent any
+
+    environment {
+        // Optional: set Maven home if needed
+        MAVEN_HOME = '/usr/share/maven'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Clone the Git repository
+                git branch: 'main', url: 'https://github.com/username/your-java-project.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                // Build the project using Maven
+                sh "${MAVEN_HOME}/bin/mvn clean install"
+            }
+        }
+
+        stage('Test') {
+            steps {
+                // Run tests (optional, Maven handles this during install)
+                sh "${MAVEN_HOME}/bin/mvn test"
+            }
+        }
+
+        stage('Archive') {
+            steps {
+                // Archive the generated JAR files
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Build succeeded!'
+        }
+        failure {
+            echo 'Build failed!'
+        }
+    }
+}
