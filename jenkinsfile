@@ -1,47 +1,40 @@
 pipeline {
     agent any
 
-    environment {
-        // Optional: set Maven home if needed
-        MAVEN_HOME = '/usr/share/maven'
+    tools {
+        jdk 'JDK17'
+        maven 'Maven3'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Clone the Git repository
-                git branch: 'main', url: 'https://github.com/Saranya-aws/java.git'
+                checkout scm
             }
         }
 
         stage('Build') {
             steps {
-                // Build the project using Maven
-                sh "${MAVEN_HOME}/bin/mvn clean install"
+                sh 'mvn clean install'
             }
         }
 
         stage('Test') {
             steps {
-                // Run tests (optional, Maven handles this during install)
-                sh "${MAVEN_HOME}/bin/mvn test"
+                sh 'mvn test'
             }
         }
 
-        stage('Archive') {
+        stage('Package') {
             steps {
-                // Archive the generated JAR files
-                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                sh 'mvn package'
             }
-        }
-    }
-
-    post {
-        success {
-            echo 'Build succeeded!'
-        }
-        failure {
-            echo 'Build failed!'
+            post {
+                success {
+                    archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+                }
+            }
         }
     }
 }
+
