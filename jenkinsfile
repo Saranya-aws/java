@@ -25,6 +25,18 @@ pipeline {
                 sh "mvn clean install -DskipTests"
             }
         }
+stage('Verify Artifact') {
+    steps {
+        script {
+            def jarFile = findFiles(glob: 'target/*.jar')[0]
+            if (!jarFile || jarFile.length() == 0) {
+                error "Build failed: JAR is missing or empty!"
+            } else {
+                echo "JAR created successfully: ${jarFile.name}"
+            }
+        }
+    }
+}
 
         stage('Test') {
             steps {
