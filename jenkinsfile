@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        NEXUS_REPO = "http://3.104.74.182:8081/repository/maven-hosted/"
+        NEXUS_REPO = "http://3.27.120.170:8081/repository/maven-hosted/"
         NEXUS_CREDENTIALS = "saranya"
     }
 
