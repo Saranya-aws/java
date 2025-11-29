@@ -45,9 +45,9 @@
                     repository: "${NEXUS_REPO}",
                     credentialsId: "${NEXUS_CREDENTIALS_ID}",
                     artifacts: [[
-                        artifactId: 'sample-java',
+                        artifactId: 'java-project',
                         classifier: '',
-                        file: "target/sample-java-1.0-SNAPSHOT.jar",
+                        file: "target/java-project-1.0-SNAPSHOT.jar",
                         type: 'jar'
                     ]]
                 )
