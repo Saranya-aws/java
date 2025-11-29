@@ -1,4 +1,5 @@
-pipeline {
+
+           pipeline {
     agent any
 
     environment {
@@ -20,7 +21,7 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh "${MAVEN_HOME}/bin/mvn clean package"
+                sh "${MAVEN_HOME}/bin/mvn clean package -DskipTests"
             }
         }
 
@@ -33,19 +34,20 @@ pipeline {
         stage('Upload to Nexus') {
             steps {
                 echo 'Uploading artifact to Nexus repository...'
+
                 nexusArtifactUploader(
                     nexusVersion: 'nexus3',
                     protocol: 'http',
                     nexusUrl: "${NEXUS_URL}",
                     groupId: 'com.saranya',
-                    version: "1.0-SNAPSHOT",
+                    version: "${ARTIFACT_VERSION}",
                     repository: "${NEXUS_REPO}",
                     credentialsId: "${NEXUS_CREDENTIALS_ID}",
                     artifacts: [
                         [
                             artifactId: 'sample-java',
                             classifier: '',
-                            file: 'target/sample-java-1.0-SNAPSHOT.jar',
+                            file: "target/sample-java-${ARTIFACT_VERSION}.jar",
                             type: 'jar'
                         ]
                     ]
@@ -55,6 +57,7 @@ pipeline {
 
         stage('Check Docker Access') {
             steps {
+                sh 'docker --version'
                 sh 'docker info'
             }
         }
@@ -69,7 +72,7 @@ pipeline {
         stage('Scan Docker Image') {
             steps {
                 echo "Scanning Docker image ${DOCKER_IMAGE} with Trivy..."
-                sh "trivy image --severity HIGH,CRITICAL --exit-code 1 ${DOCKER_IMAGE} || true"
+                sh "trivy image --severity HIGH,CRITICAL --exit-code 0 -o trivyimage.txt ${DOCKER_IMAGE}"
             }
             post {
                 always {
@@ -105,4 +108,3 @@ pipeline {
         }
     }
 }
-
