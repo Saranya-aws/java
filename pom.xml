@@ -31,7 +31,7 @@
     <distributionManagement>
         <repository>
             <id>nexus</id>
-            <url>http://3.27.120.170:8081/repository/maven-hosted/</url>
+            <url>http://3.25.213.77:8081/repository/maven-hosted/</url>
         </repository>
     </distributionManagement>
 
