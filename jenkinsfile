@@ -13,7 +13,26 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/Saranya-aws/java.git'
             }
         }
-
+stage('Uploading to Nexus') {
+            steps {
+                echo 'Uploading artifact to Nexus repository...'
+                nexusArtifactUploader artifacts: [
+                    [
+                        artifactId: 'Sample-java',
+                        classifier: '',
+                        file: 'java/target/Sample-java-1.0.jar',
+                        type: 'jar'
+                    ]
+                ],
+                credentialsId: "${env.NEXUS_CREDENTIALS_ID}",
+                groupId: 'com.saranya',
+                nexusUrl: "${env.NEXUS_URL}",
+                nexusVersion: 'nexus3',
+                protocol: 'http',
+                repository: "${env.NEXUS_REPO}",
+                version: "${env.ARTIFACT_VERSION}"
+            }
+        }
         stage('Build') {
             steps {
                 // Build the project using Maven
