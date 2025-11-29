@@ -2,54 +2,59 @@ pipeline {
     agent any
 
     environment {
-        // Optional: set Maven home if needed
         MAVEN_HOME = '/usr/share/maven'
+        NEXUS_URL = '52.65.40.103:8081'
+        NEXUS_REPO = 'spring-boot-app'
+        NEXUS_CREDENTIALS_ID = 'nexus-credentials'
+        ARTIFACT_VERSION = "1.0.${BUILD_NUMBER}"
     }
 
     stages {
+
         stage('Checkout') {
             steps {
-                // Clone the Git repository
                 git branch: 'main', url: 'https://github.com/Saranya-aws/java.git'
             }
         }
-stage('Uploading to Nexus') {
-            steps {
-                echo 'Uploading artifact to Nexus repository...'
-                nexusArtifactUploader artifacts: [
-                    [
-                        artifactId: 'Sample-java',
-                        classifier: '',
-                        file: 'java/target/Sample-java-1.0.jar',
-                        type: 'jar'
-                    ]
-                ],
-                credentialsId: "${env.NEXUS_CREDENTIALS_ID}",
-                groupId: 'com.saranya',
-                nexusUrl: "${env.NEXUS_URL}",
-                nexusVersion: 'nexus3',
-                protocol: 'http',
-                repository: "${env.NEXUS_REPO}",
-                version: "${env.ARTIFACT_VERSION}"
-            }
-        }
+
         stage('Build') {
             steps {
-                // Build the project using Maven
-                sh "${MAVEN_HOME}/bin/mvn clean install"
+                sh "${MAVEN_HOME}/bin/mvn clean package"
             }
         }
 
         stage('Test') {
             steps {
-                // Run tests (optional, Maven handles this during install)
                 sh "${MAVEN_HOME}/bin/mvn test"
+            }
+        }
+
+        stage('Upload to Nexus') {
+            steps {
+                echo 'Uploading artifact to Nexus repository...'
+
+                nexusArtifactUploader(
+                    nexusVersion: 'nexus3',
+                    protocol: 'http',
+                    nexusUrl: "${NEXUS_URL}",
+                    groupId: 'com.saranya',
+                    version: "1.0-SNAPSHOT",
+                    repository: "${NEXUS_REPO}",
+                    credentialsId: "${NEXUS_CREDENTIALS_ID}",
+                    artifacts: [
+                        [
+                            artifactId: 'sample-java',
+                            classifier: '',
+                            file: 'target/sample-java-1.0-SNAPSHOT.jar',
+                            type: 'jar'
+                        ]
+                    ]
+                )
             }
         }
 
         stage('Archive') {
             steps {
-                // Archive the generated JAR files
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
@@ -57,7 +62,7 @@ stage('Uploading to Nexus') {
 
     post {
         success {
-            echo 'Build succeeded!'
+            echo 'Build and upload succeeded!'
         }
         failure {
             echo 'Build failed!'
