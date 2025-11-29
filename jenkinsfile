@@ -8,7 +8,8 @@ pipeline {
         NEXUS_CREDENTIALS_ID = 'nexus-credentials'
         ARTIFACT_VERSION = "1.0.${BUILD_NUMBER}"
         DOCKER_IMAGE = "saranya/java:${BUILD_NUMBER}"
-    }
+        REGISTRY_CREDENTIALS = credentials('jenkins-push')    
+}
 
     stages {
 
