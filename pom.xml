@@ -14,7 +14,7 @@
     <repositories>
         <repository>
             <id>nexus</id>
-            <url>http://3.27.199.172:8081L/repository/maven-public/</url>
+            <url>http://3.107.183.117:8081/repository/maven-public/</url>
         </repository>
     </repositories>
 
@@ -22,12 +22,12 @@
     <distributionManagement>
         <repository>
             <id>nexus-releases</id>
-            <url>http://3.27.199.172:8081/repository/maven-releases/</url>
+            <url>http://3.107.183.117:8081/repository/maven-releases/</url>
         </repository>
 
         <snapshotRepository>
             <id>nexus-snapshots</id>
-            <url>http://3.27.199.172:8081/repository/maven-snapshots/</url>
+            <url>http://3.107.183.117:8081/repository/maven-snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 
