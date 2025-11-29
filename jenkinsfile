@@ -1,5 +1,5 @@
 
-           pipeline {
+  pipeline {
     agent any
 
     environment {
@@ -9,7 +9,8 @@
         NEXUS_CREDENTIALS_ID = 'nexus-credentials'
         ARTIFACT_VERSION = "1.0.${BUILD_NUMBER}"
         DOCKER_IMAGE = "saranya/java:${BUILD_NUMBER}"
-    }
+        REGISTRY_CREDENTIALS = credentials('docker-cred')    
+}
 
     stages {
 
@@ -21,7 +22,7 @@
 
         stage('Build') {
             steps {
-                sh "${MAVEN_HOME}/bin/mvn clean package -DskipTests"
+                sh "${MAVEN_HOME}/bin/mvn clean package"
             }
         }
 
@@ -40,57 +41,69 @@
                     protocol: 'http',
                     nexusUrl: "${NEXUS_URL}",
                     groupId: 'com.saranya',
-                    version: "${ARTIFACT_VERSION}",
+                    version: "1.0-SNAPSHOT",
                     repository: "${NEXUS_REPO}",
                     credentialsId: "${NEXUS_CREDENTIALS_ID}",
                     artifacts: [
                         [
                             artifactId: 'sample-java',
                             classifier: '',
-                            file: "target/sample-java-${ARTIFACT_VERSION}.jar",
+                            file: 'target/sample-java-1.0-SNAPSHOT.jar',
                             type: 'jar'
                         ]
                     ]
                 )
             }
         }
-
-        stage('Check Docker Access') {
+     
+                   stage('Check Docker Access') {
             steps {
-                sh 'docker --version'
                 sh 'docker info'
             }
         }
 
         stage('Build Docker Image') {
-            steps {
+    steps {
+        script {
+            if (fileExists('Dockerfile')) {
                 echo "Building Docker image ${DOCKER_IMAGE}..."
                 sh "docker build -t ${DOCKER_IMAGE} ."
+            } else {
+                echo "Dockerfile not found. Skipping Docker build."
             }
         }
+    }
+}
 
-        stage('Scan Docker Image') {
-            steps {
-                echo "Scanning Docker image ${DOCKER_IMAGE} with Trivy..."
-                sh "trivy image --severity HIGH,CRITICAL --exit-code 0 -o trivyimage.txt ${DOCKER_IMAGE}"
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'trivyimage.txt', fingerprint: true
-                }
+       stage('Scan Docker Image') {
+    steps {
+        echo "Scanning Docker image ${DOCKER_IMAGE} with Trivy..."
+        // Run Trivy scan, capture output, do not fail pipeline immediately
+        sh """
+            trivy image --severity HIGH,CRITICAL --exit-code 1 ${DOCKER_IMAGE} > trivyimage.txt || true
+        """
+    }
+    post {
+        always {
+            // Archive the scan report for reference
+            archiveArtifacts artifacts: 'trivyimage.txt', fingerprint: true
+        }
+    }
+}
+stage('Push Docker Image') {
+    steps {
+        script {
+            echo "Pushing Docker image ${DOCKER_IMAGE} to registry..."
+            
+            // Use Jenkins credentials for Docker Hub
+            docker.withRegistry('https://index.docker.io/v1/', 'docker-cred') {
+                // Push the image
+                docker.image("${DOCKER_IMAGE}").push()
             }
         }
+    }
+}
 
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    echo "Pushing Docker image ${DOCKER_IMAGE} to Docker Hub..."
-                    docker.withRegistry('https://index.docker.io/v1/', 'docker-cred') {
-                        docker.image("${DOCKER_IMAGE}").push()
-                    }
-                }
-            }
-        }
 
         stage('Archive') {
             steps {
@@ -101,10 +114,11 @@
 
     post {
         success {
-            echo 'Build, scan, and push succeeded!'
+            echo 'Build and upload succeeded!'
         }
         failure {
             echo 'Build failed!'
         }
     }
 }
+
