@@ -47,7 +47,7 @@
                     artifacts: [[
                         artifactId: 'sample-java',
                         classifier: '',
-                        file: "target/sample-java-${ARTIFACT_VERSION}.jar",
+                        file: "target/sample-java-1.0-SNAPSHOT.jar",
                         type: 'jar'
                     ]]
                 )
