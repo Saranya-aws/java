@@ -36,7 +36,7 @@
                 ]],
                 credentialsId: 'nexus-cred',
                 groupId: 'com.saranya',
-                nexusUrl: '3.106.225.46:8081',
+                nexusUrl: '16.176.208.115:8081',
                 nexusVersion: 'nexus3',
                 protocol: 'http',
                 repository: 'spring-boot-app',
@@ -91,7 +91,7 @@ stage('Update Deployment File') {
                         git config user.email "rsaranyaa.ece@gmail.com"
                         git config user.name "saranya-aws"
 						PREVIOUS_BUILD_NUMBER=\$((BUILD_NUMBER - 1))
-                        sed -i "s|saranya/java:\${PREVIOUS_BUILD_NUMBER}|saranya/java:${BUILD_NUMBER}|g" java-manifests/deployment.yml
+                        sed -i "s|saranya/java:\${PREVIOUS_BUILD_NUMBER}|saranya/java:${BUILD_NUMBER}|g" java-manifests/deployment.yaml
                         git pull origin main
                         git add .
                         git commit -m "Update deployment image to version ${BUILD_NUMBER}" || echo "No changes to commit"
