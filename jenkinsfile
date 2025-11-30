@@ -36,7 +36,7 @@
                 ]],
                 credentialsId: 'nexus-cred',
                 groupId: 'com.saranya',
-                nexusUrl: 'http://52.62.116.202:8081',
+                nexusUrl: '52.62.116.202:8081',
                 nexusVersion: 'nexus3',
                 protocol: 'http',
                 repository: 'spring-boot-app',
