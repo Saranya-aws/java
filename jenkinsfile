@@ -100,6 +100,15 @@ stage('Update Deployment File') {
                 }
             }
         }
+stage('Remove Local Docker Image') {
+            steps {
+                echo 'Removing Docker image from local...'
+                sh '''
+                   docker rmi ${DOCKER_IMAGE} || true
+                '''
+            }
+        }
+    }
         stage('Archive Artifacts') {
             steps {
                 archiveArtifacts artifacts: "target/*.jar", fingerprint: true
