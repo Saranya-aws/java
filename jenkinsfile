@@ -108,7 +108,7 @@ stage('Remove Local Docker Image') {
                 '''
             }
         }
-    }
+    
         stage('Archive Artifacts') {
             steps {
                 archiveArtifacts artifacts: "target/*.jar", fingerprint: true
