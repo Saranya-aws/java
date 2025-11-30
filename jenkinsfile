@@ -72,6 +72,12 @@
                 }
             }
         }
+stage('Cleanup Trivy Cache') {
+            steps {
+                echo 'Cleaning up Trivy cache...'
+                sh 'rm -rf /var/lib/jenkins/.cache/trivy/*'
+            }                                                        
+        }
 
         stage('Archive Artifacts') {
             steps {
