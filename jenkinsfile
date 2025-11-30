@@ -86,15 +86,15 @@
         }
 
         stage('Push Docker Image') {
-            steps {
-                script {
-                    echo "Pushing Docker image ${DOCKER_IMAGE} to Docker Hub..."
-                    docker.withRegistry('https://index.docker.io/v1/', REGISTRY_CREDENTIALS) {
-                        docker.image("${DOCKER_IMAGE}").push()
-                    }
-                }
+    steps {
+        script {
+            echo "Pushing Docker image saranya/java:1.0.56-SNAPSHOT to Docker Hub..."
+            withDockerRegistry([credentialsId: 'docker-cred', url: '']) {
+                docker.image('saranya/java:1.0.56-SNAPSHOT').push()
             }
         }
+    }
+}
 
         stage('Archive Artifacts') {
             steps {
