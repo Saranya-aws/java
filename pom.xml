@@ -1,13 +1,22 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.saranya</groupId>
     <artifactId>sample-java</artifactId>
-    <version>1.0-SNAPSHOT</version>
+
+    <!-- Dynamic version -->
+    <properties>
+        <revision>1.0-SNAPSHOT</revision>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+    </properties>
+
+    <version>${revision}</version>
     <packaging>jar</packaging>
 
     <!-- Nexus Repo (Download Dependencies) -->
@@ -39,8 +48,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <source>17</source>
-                    <target>17</target>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
                 </configuration>
             </plugin>
 
@@ -55,6 +64,7 @@
                             <mainClass>SampleJava</mainClass>
                         </manifest>
                     </archive>
+                    <finalName>${project.artifactId}-${revision}</finalName>
                 </configuration>
             </plugin>
         </plugins>
