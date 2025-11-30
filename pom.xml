@@ -19,7 +19,7 @@
     <version>${revision}</version>
     <packaging>jar</packaging>
 
-    <!-- Nexus Repo (Download Dependencies) -->
+    <!-- Nexus Repo for dependencies -->
     <repositories>
         <repository>
             <id>nexus</id>
@@ -27,7 +27,7 @@
         </repository>
     </repositories>
 
-    <!-- Nexus Repo (Upload/Deploy JAR) -->
+    <!-- Nexus Repo for deployments -->
     <distributionManagement>
         <repository>
             <id>nexus-releases</id>
@@ -42,7 +42,8 @@
 
     <build>
         <plugins>
-            <!-- Compile Java -->
+
+            <!-- Java Compiler Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -53,7 +54,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Build JAR -->
+            <!-- Create Executable JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -61,12 +62,16 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>SampleJava</mainClass>
+                            <!-- FIX: Main class must be FULLY QUALIFIED PACKAGE NAME -->
+                            <mainClass>com.saranya.SampleJava</mainClass>
                         </manifest>
                     </archive>
+
+                    <!-- Output JAR name -->
                     <finalName>${project.artifactId}-${revision}</finalName>
                 </configuration>
             </plugin>
+
         </plugins>
     </build>
 
