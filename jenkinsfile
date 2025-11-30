@@ -5,7 +5,7 @@
 
     environment {
         MAVEN_HOME = '/usr/share/maven'
-        NEXUS_URL = '13.239.134.10:8081'
+        NEXUS_URL = '16.176.206.79:8081'
         NEXUS_REPO = 'spring-boot-app'
         NEXUS_CREDENTIALS_ID = 'nexus-credentials'
         ARTIFACT_VERSION = "1.0.${BUILD_NUMBER}-SNAPSHOT"
@@ -85,12 +85,12 @@
             }
         }
 
-        stage('Push Docker Image') {
+       stage('Push Docker Image') {
     steps {
+        echo "Pushing Docker image saranya/java:1.0.57-SNAPSHOT to Docker Hub..."
         script {
-            echo "Pushing Docker image saranya/java:1.0.56-SNAPSHOT to Docker Hub..."
-            withDockerRegistry([credentialsId: 'docker-cred', url: '']) {
-                docker.image('saranya/java:1.0.56-SNAPSHOT').push()
+            withDockerRegistry([credentialsId: 'dockerhub-cred', url: 'https://index.docker.io/v1/']) {
+                docker.image('saranya/java:1.0.57-SNAPSHOT').push()
             }
         }
     }
