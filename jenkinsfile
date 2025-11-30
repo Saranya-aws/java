@@ -1,5 +1,6 @@
 
- pipeline {
+
+          pipeline {
     agent any
 
     environment {
@@ -8,7 +9,7 @@
         NEXUS_REPO = 'spring-boot-app'
         NEXUS_CREDENTIALS_ID = 'nexus-credentials'
         ARTIFACT_VERSION = "1.0.${BUILD_NUMBER}"
-        DOCKER_IMAGE = "saranya/java:${BUILD_NUMBER}"
+        DOCKER_IMAGE = "saranya/java:${ARTIFACT_VERSION}"
         REGISTRY_CREDENTIALS = credentials('docker-cred')
     }
 
@@ -23,31 +24,31 @@
         stage('Build & Test') {
             steps {
                 echo "Building and testing Java project..."
-                sh "${MAVEN_HOME}/bin/mvn clean package"
+                // Override Maven version with ARTIFACT_VERSION
+                sh "${MAVEN_HOME}/bin/mvn clean package -Drevision=${ARTIFACT_VERSION}"
             }
         }
 
         stage('Upload to Nexus') {
             steps {
                 echo "Uploading artifact to Nexus repository..."
-             nexusArtifactUploader(
-             nexusVersion: 'nexus3',
-             protocol: 'http',
-             nexusUrl: "${NEXUS_URL}",
-             groupId: 'com.saranya',
-             nexus version: "1.0-SNAPSHOT",
-             repository: "${NEXUS_REPO}",
-             credentialsId: "${NEXUS_CREDENTIALS_ID}",
-             artifacts: [
-               [
-            artifactId: 'sample-java',
-            classifier: '',
-            file: "target/sample-java-1.0-SNAPSHOT.jar",
-            type: 'jar'
-        ]
-    ]
-)
-
+                nexusArtifactUploader(
+                    nexusVersion: 'nexus3',
+                    protocol: 'http',
+                    nexusUrl: "${NEXUS_URL}",
+                    groupId: 'com.saranya',
+                    version: "${ARTIFACT_VERSION}",
+                    repository: "${NEXUS_REPO}",
+                    credentialsId: "${NEXUS_CREDENTIALS_ID}",
+                    artifacts: [
+                        [
+                            artifactId: 'sample-java',
+                            classifier: '',
+                            file: "target/sample-java-${ARTIFACT_VERSION}.jar",
+                            type: 'jar'
+                        ]
+                    ]
+                )
             }
         }
 
@@ -87,7 +88,7 @@
         stage('Push Docker Image') {
             steps {
                 script {
-                    echo "Pushing Docker image ${DOCKER_IMAGE} to registry..."
+                    echo "Pushing Docker image ${DOCKER_IMAGE} to Docker Hub..."
                     docker.withRegistry('https://index.docker.io/v1/', REGISTRY_CREDENTIALS) {
                         docker.image("${DOCKER_IMAGE}").push()
                     }
@@ -97,7 +98,7 @@
 
         stage('Archive Artifacts') {
             steps {
-                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                archiveArtifacts artifacts: "target/sample-java-${ARTIFACT_VERSION}.jar", fingerprint: true
             }
         }
 
@@ -105,10 +106,10 @@
 
     post {
         success {
-            echo "Build, upload, and Docker push succeeded!"
+            echo "Build, Nexus upload, and Docker push succeeded! Version: ${ARTIFACT_VERSION}"
         }
         failure {
-            echo "Build failed!"
+            echo "Pipeline failed!"
         }
     }
 }
