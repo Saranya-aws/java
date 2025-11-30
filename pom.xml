@@ -23,7 +23,7 @@
     <repositories>
         <repository>
             <id>nexus</id>
-            <url>http://13.239.55.65:8081/repository/maven-public/</url>
+            <url>http://16.176.179.156:8081/repository/maven-public/</url>
         </repository>
     </repositories>
 
@@ -36,7 +36,7 @@
 
         <snapshotRepository>
             <id>nexus-snapshots</id>
-            <url>http://13.239.55.65:8081/repository/maven-snapshots/</url>
+            <url>http://16.176.179.156:8081/repository/maven-snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 
