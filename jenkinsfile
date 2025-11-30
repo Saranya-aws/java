@@ -4,51 +4,43 @@
     agent any
 
     environment {
-        MAVEN_HOME = '/usr/share/maven'
-        NEXUS_URL = '52.62.116.202:8081'
-        NEXUS_REPO = 'spring-boot-app'
-        NEXUS_CREDENTIALS_ID = 'nexus-credentials'
-        ARTIFACT_VERSION = "1.0.${BUILD_NUMBER}-SNAPSHOT"
-        DOCKER_IMAGE = "saranyamagi/java:${ARTIFACT_VERSION}"
-        REGISTRY_CREDENTIALS = credentials('dockerhub-cred')
+        REGISTRY = "saranyamagi"
+        IMAGE_NAME = "java"
+        VERSION = "1.0.65-SNAPSHOT"   // Change dynamically if needed
+        FULL_IMAGE = "${REGISTRY}/${IMAGE_NAME}:${VERSION}"
     }
 
     stages {
 
-        stage('Checkout') {
+        stage('Checkout SCM') {
             steps {
-                git branch: 'main', url: 'https://github.com/Saranya-aws/java.git'
+                checkout scm
             }
         }
 
         stage('Build & Test') {
             steps {
-                echo "Building and testing Java project..."
-                // Override Maven version with ARTIFACT_VERSION
-                sh "${MAVEN_HOME}/bin/mvn clean package -Drevision=${ARTIFACT_VERSION}"
+                echo 'Building and testing Java project...'
+                sh "mvn clean package -Drevision=${VERSION}"
             }
         }
 
         stage('Upload to Nexus') {
             steps {
-                echo "Uploading artifact to Nexus repository..."
-                nexusArtifactUploader(
-                    nexusVersion: 'nexus3',
-                    protocol: 'http',
-                    nexusUrl: "${NEXUS_URL}",
-                    groupId: 'com.saranya',
-                    version: "${ARTIFACT_VERSION}",
-                    repository: "${NEXUS_REPO}",
-                    credentialsId: "${NEXUS_CREDENTIALS_ID}",
-                    artifacts: [
-                        [
-                            artifactId: 'sample-java',
-                            classifier: '',
-                            file: "target/sample-java-${ARTIFACT_VERSION}.jar",
-                            type: 'jar'
-                        ]
-                    ]
-                )
+                echo 'Uploading artifact to Nexus repository...'
+                nexusArtifactUploader artifacts: [[
+                    artifactId: 'sample-java',
+                    classifier: '',
+                    file: "target/sample-java-${VERSION}.jar",
+                    type: 'jar'
+                ]],
+                credentialsId: 'nexus-cred',
+                groupId: 'com.saranya',
+                nexusUrl: 'http://52.62.116.202:8081',
+                nexusVersion: 'nexus3',
+                protocol: 'http',
+                repository: 'spring-boot-app',
+                version: "${VERSION}"
             }
         }
 
@@ -60,57 +52,43 @@
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    if (fileExists('Dockerfile')) {
-                        echo "Building Docker image ${DOCKER_IMAGE}..."
-                        sh "docker build -t ${DOCKER_IMAGE} ."
-                    } else {
-                        echo "Dockerfile not found. Skipping Docker build."
-                    }
-                }
+                echo "Building Docker image ${FULL_IMAGE}..."
+                sh "docker build -t ${FULL_IMAGE} ."
             }
         }
 
         stage('Scan Docker Image') {
             steps {
-                echo "Scanning Docker image ${DOCKER_IMAGE} with Trivy..."
-                sh """
-                    trivy image --severity HIGH,CRITICAL --exit-code 1 ${DOCKER_IMAGE} > trivyimage.txt || true
-                """
+                echo "Scanning Docker image ${FULL_IMAGE} with Trivy..."
+                sh "trivy image --severity HIGH,CRITICAL --exit-code 1 ${FULL_IMAGE} || true"
             }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'trivyimage.txt', fingerprint: true
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                echo "Pushing Docker image ${FULL_IMAGE} to Docker Hub..."
+                withDockerRegistry([credentialsId: 'dockerhub-cred', url: '']) {
+                    sh "docker push ${FULL_IMAGE}"
                 }
             }
         }
 
-      stage('Push Docker Image') {
-    steps {
-        script {
-            echo "Pushing Docker image ${DOCKER_IMAGE} to Docker Hub..."
-            withDockerRegistry([credentialsId: 'dockerhub-cred', url: '']) {
-                docker.image("${DOCKER_IMAGE}").push()
-            }
-        }
-    }
-}
-
-
         stage('Archive Artifacts') {
             steps {
-                archiveArtifacts artifacts: "target/sample-java-${ARTIFACT_VERSION}.jar", fingerprint: true
+                archiveArtifacts artifacts: "target/*.jar", fingerprint: true
             }
         }
-
     }
 
     post {
+        always {
+            echo 'Pipeline finished!'
+        }
         success {
-            echo "Build, Nexus upload, and Docker push succeeded! Version: ${ARTIFACT_VERSION}"
+            echo 'Pipeline succeeded!'
         }
         failure {
-            echo "Pipeline failed!"
+            echo 'Pipeline failed!'
         }
     }
 }
