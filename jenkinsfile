@@ -85,16 +85,12 @@
             }
         }
 
-       stage('Push Docker Image') {
+      stage('Push Docker Image') {
     steps {
         script {
-            def IMAGE_NAME = "saranyamagi/java"
-            def IMAGE_TAG = "1.0.59-SNAPSHOT"   // match build version
-
-            echo "Pushing Docker image ${IMAGE_NAME}:${IMAGE_TAG} to Docker Hub..."
-
+            echo "Pushing Docker image ${DOCKER_IMAGE} to Docker Hub..."
             withDockerRegistry([credentialsId: 'dockerhub-cred', url: '']) {
-                docker.image("${IMAGE_NAME}:${IMAGE_TAG}").push()
+                docker.image("${DOCKER_IMAGE}").push()
             }
         }
     }
