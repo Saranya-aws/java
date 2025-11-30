@@ -30,23 +30,24 @@
         stage('Upload to Nexus') {
             steps {
                 echo "Uploading artifact to Nexus repository..."
-                nexusArtifactUploader(
-                    nexusVersion: 'nexus3',
-                    protocol: 'http',
-                    nexusUrl: "${NEXUS_URL}",
-                    groupId: 'com.saranya',
-                    version: "${ARTIFACT_VERSION}",
-                    repository: "${NEXUS_REPO}",
-                    credentialsId: "${NEXUS_CREDENTIALS_ID}",
-                    artifacts: [
-                        [
-                            artifactId: 'sample-java',
-                            classifier: '',
-                            file: "target/sample-java-${ARTIFACT_VERSION}.jar",
-                            type: 'jar'
-                        ]
-                    ]
-                )
+             nexusArtifactUploader(
+             nexusVersion: 'nexus3',
+             protocol: 'http',
+             nexusUrl: "${NEXUS_URL}",
+             groupId: 'com.saranya',
+             nexus version: "1.0-SNAPSHOT",
+             repository: "${NEXUS_REPO}",
+             credentialsId: "${NEXUS_CREDENTIALS_ID}",
+             artifacts: [
+               [
+            artifactId: 'sample-java',
+            classifier: '',
+            file: "target/sample-java-1.0-SNAPSHOT.jar",
+            type: 'jar'
+        ]
+    ]
+)
+
             }
         }
 
