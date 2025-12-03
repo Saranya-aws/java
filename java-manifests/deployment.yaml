@@ -20,4 +20,3 @@ spec:
           image: saranya/java:75
           ports:
             - containerPort: 8080
-
