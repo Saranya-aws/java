@@ -1,0 +1,166 @@
+pipeline {
+    agent any
+
+    tools {
+        maven "maven3"
+    }
+
+    environment { 
+        NEXUS_URL = '13.215.120.233:8081'
+        NEXUS_REPO = 'java'
+        NEXUS_CREDENTIALS_ID = 'nexus-credentials'
+        ARTIFACT_VERSION = "${BUILD_NUMBER}"
+        DOCKER_IMAGE = "saranya/java:${BUILD_NUMBER}"
+        REGISTRY_CREDENTIALS = credentials('jenkins-push')
+    }
+    
+    stages {
+        stage('Clean Workspace') {
+            steps {
+                echo "Cleaning workspace..."
+                cleanWs()
+            }
+        }
+
+        stage('Git Checkout') {
+            steps {
+                echo "Checking out code from Git..."
+                git branch: 'main', url: 'https://github.com/saranya-aws/java.git'
+            }
+        }
+
+        stage('Build & Test') {
+            steps {
+                echo 'Building the project...'
+                sh '''
+                   cd java
+                   mvn clean compile
+                   mvn test
+                '''
+            }
+        }
+
+        stage('Package & Install') {
+            steps {
+                echo 'Packaging the project...'
+                sh '''
+				   cd java
+                   mvn package
+                   mvn install
+                '''
+            }
+        }
+
+        stage('Uploading to Nexus') {
+            steps {
+                echo 'Uploading artifact to Nexus repository...'
+                nexusArtifactUploader artifacts: [
+                    [
+                        artifactId: 'SimpleJavaProject',
+                        classifier: '',
+                        file: 'java/target/SimpleJavaProject-1.0.jar',
+                        type: 'jar'
+                    ]
+                ],
+                credentialsId: "${env.NEXUS_CREDENTIALS_ID}",
+                groupId: 'com.saranya',
+                nexusUrl: "${env.NEXUS_URL}",
+                nexusVersion: 'nexus3',
+                protocol: 'http',
+                repository: "${env.NEXUS_REPO}",
+                version: "${env.ARTIFACT_VERSION}"
+            }
+        }
+
+        stage('Check Docker Access') {
+            steps {
+                sh 'docker info'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                echo 'Building Docker image...'
+                sh """
+                echo "User: \$(whoami)"
+                id
+                groups
+
+				cd java
+                docker build -t ${DOCKER_IMAGE} .
+                """
+            }
+        }
+
+        stage('Scan Docker Image') {
+            steps {
+                echo 'Scanning Docker image using Trivy...'
+                sh '''
+                    trivy image --severity HIGH,CRITICAL --exit-code 1 ${DOCKER_IMAGE} > trivyimage.txt
+                '''
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'trivyimage.txt', fingerprint: true
+                }
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                echo 'Pushing Docker image to registry...'
+                script {
+                    def dockerImage = docker.image("${DOCKER_IMAGE}")
+                    docker.withRegistry('https://index.docker.io/v1/', 'jenkins-push') {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
+        stage('Cleanup Trivy Cache') {
+            steps {
+                echo 'Cleaning up Trivy cache...'
+                sh 'rm -rf /var/lib/jenkins/.cache/trivy/*'
+            }                                                        
+        }
+        stage('Update Deployment File') {
+            environment {
+                GIT_REPO_NAME = "java"
+                GIT_USER_NAME = "saranya-aws"
+            }
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'git', usernameVariable: 'GIT_USER', 
+                passwordVariable: 'GIT_TOKEN')]) {
+                    sh """
+                        echo 'Update Deployment File...'
+                        git config user.email "manishaasha5@gmail.com"
+                        git config user.name "manishasasi"
+						PREVIOUS_BUILD_NUMBER=\$((BUILD_NUMBER - 1))
+                        sed -i "s|manishasasi5/java-project:\${PREVIOUS_BUILD_NUMBER}|manishasasi5/java-project:${BUILD_NUMBER}|g" java-project-manifests/deployment.yml
+                        git pull origin main
+                        git add .
+                        git commit -m "Update deployment image to version ${BUILD_NUMBER}" || echo "No changes to commit"
+                        git push https://\$GIT_USER:\$GIT_TOKEN@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME}.git HEAD:main
+                    """
+                }
+            }
+        }
+		stage('Remove Local Docker Image') {
+            steps {
+                echo 'Removing Docker image from local...'
+                sh '''
+                   docker rmi ${DOCKER_IMAGE} || true
+                '''
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo 'Build completed successfully!'
+        }
+        failure {
+            echo 'Build failed. Check logs.'
+        }
+    }
+}
