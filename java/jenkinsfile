@@ -7,25 +7,32 @@ pipeline {
     }
 
     environment {
-        /* Safe Trivy cache location */
+        // Safe Trivy cache location
         TRIVY_CACHE_DIR = "${JENKINS_HOME}/caches/trivy"
+        TMPDIR = "${JENKINS_HOME}/tmp/trivy-tmp"  // Temporary files directory
         NEXUS_URL  = "http://3.106.122.202:8081"
         NEXUS_REPO = "spring-boot-app"
         GROUP_ID   = "com.saranya"
-        CRED_ID    = "nexus-cred" /* Make sure this matches Jenkins */
+        CRED_ID    = "nexus-cred" // Make sure this matches Jenkins
     }
 
     options {
-        /* Keep only last 5 builds */
+        // Keep only last 5 builds
         buildDiscarder(logRotator(numToKeepStr: '5'))
         timeout(time: 30, unit: 'MINUTES')
     }
 
     stages {
-        stage('Checkout') {
+        stage('Prepare Directories') {
             steps {
-                checkout scm
+                script {
+                    sh "mkdir -p $TRIVY_CACHE_DIR $TMPDIR"
+                }
             }
+        }
+
+        stage('Checkout') {
+            steps { checkout scm }
         }
 
         stage('Build with Maven') {
@@ -56,13 +63,13 @@ pipeline {
                         passwordVariable: 'NEXUS_PASS'
                     )]) {
                         sh """
-                        curl -v -u $NEXUS_USER:$NEXUS_PASS \\
-                        -F maven2.groupId=$GROUP_ID \\
-                        -F maven2.artifactId=SimpleJavaProject \\
-                        -F maven2.version=1.0.0 \\
-                        -F maven2.generate-pom=true \\
-                        -F maven2.asset=@${artifact} \\
-                        -F maven2.asset.extension=jar \\
+                        curl -v -u $NEXUS_USER:$NEXUS_PASS \
+                        -F maven2.groupId=$GROUP_ID \
+                        -F maven2.artifactId=SimpleJavaProject \
+                        -F maven2.version=1.0.0 \
+                        -F maven2.generate-pom=true \
+                        -F maven2.asset=@${artifact} \
+                        -F maven2.asset.extension=jar \
                         $NEXUS_URL/service/rest/v1/components?repository=$NEXUS_REPO
                         """
                     }
@@ -80,7 +87,14 @@ pipeline {
 
         stage('Scan Docker Image') {
             steps {
-                sh "trivy image --cache-dir $TRIVY_CACHE_DIR --exit-code 1 --severity HIGH,CRITICAL simplejavaproject:1.0.0"
+                sh """
+                export TMPDIR=$TMPDIR
+                trivy image \
+                    --cache-dir $TRIVY_CACHE_DIR \
+                    --exit-code 1 \
+                    --severity HIGH,CRITICAL \
+                    simplejavaproject:1.0.0
+                """
             }
         }
     }
@@ -97,4 +111,3 @@ pipeline {
         }
     }
 }
-
