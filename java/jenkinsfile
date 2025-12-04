@@ -8,14 +8,13 @@ pipeline {
     }
 
     environment {
-        // Trivy cache directory
         TRIVY_CACHE_DIR = "${JENKINS_HOME}/trivy-cache"
         NEXUS_URL       = "http://3.27.228.166:8081"
         NEXUS_REPO      = "spring-boot-app"
         GROUP_ID        = "com.saranya"
-        CRED_ID         = "nexus-cred"       // Nexus credentials ID
-        DOCKER_REG      = "saranyamagi"      // Your Docker Hub username
-        DOCKER_CRED_ID  = "dockerhub-cred"   // Docker Hub credentials ID
+        CRED_ID         = "nexus-cred"
+        DOCKER_REG      = "saranyamagi"
+        DOCKER_CRED_ID  = "dockerhub-cred"
         IMAGE_NAME      = "simplejavaproject"
         IMAGE_TAG       = "1.0.0"
     }
@@ -28,8 +27,8 @@ pipeline {
     stages {
 
         stage('Checkout') {
-            steps { 
-                checkout scm 
+            steps {
+                checkout scm
             }
         }
 
@@ -50,10 +49,7 @@ pipeline {
         stage('Upload to Nexus') {
             steps {
                 script {
-                    def artifact = sh(
-                        script: "ls java/target/*.jar | head -1",
-                        returnStdout: true
-                    ).trim()
+                    def artifact = sh(script: "ls java/target/*.jar | head -1", returnStdout: true).trim()
 
                     withCredentials([usernamePassword(
                         credentialsId: CRED_ID,
@@ -106,17 +102,17 @@ pipeline {
             }
         }
 
-    }
-     stage('Cleanup Trivy Cache') {
+        stage('Cleanup Trivy Cache') {
             steps {
                 echo 'Cleaning up Trivy cache...'
                 sh "rm -rf $TRIVY_CACHE_DIR/*"
             }
         }
-    }
+    } // End of stages
+
     post {
         always {
-            deleteDir() // Clean workspace
+            deleteDir()
         }
         success {
             echo "Build, Nexus deploy, Docker build, Trivy scan, and Docker push completed successfully."
@@ -126,3 +122,4 @@ pipeline {
         }
     }
 }
+
