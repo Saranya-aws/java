@@ -7,8 +7,8 @@
 
     <!-- Project coordinates -->
     <groupId>com.saranya</groupId>
-    <artifactId>SimpleJavaproject</artifactId>
-    <version>1.0</version>
+    <artifactId>SimpleJavaProject</artifactId>
+     <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>SimpleJavaproject</name>
