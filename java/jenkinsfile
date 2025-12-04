@@ -52,7 +52,7 @@ pipeline {
                         sh """
                         curl -v -u $NEXUS_USER:$NEXUS_PASS \
                         -F maven2.groupId=$GROUP_ID \
-                        -F maven2.artifactId=java-app \
+                        -F maven2.artifactId=SimpleJavaProject-app \
                         -F maven2.version=1.0.0 \
                         -F maven2.generate-pom=true \
                         -F maven2.asset=@${artifact} \
