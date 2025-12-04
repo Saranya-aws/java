@@ -15,7 +15,7 @@ pipeline {
         GROUP_ID   = "com.saranya"
         CRED_ID    = "nexus-cred"   // Nexus credentials ID
         DOCKER_REG  = "your-docker-registry" // e.g., docker.io/username
-        DOCKER_CRED_ID = "docker-cred"       // Docker credentials ID
+        DOCKER_CRED_ID = "dockerhub-cred"       // Docker credentials ID
         IMAGE_NAME  = "simplejavaproject"
         IMAGE_TAG   = "1.0.0"
     }
