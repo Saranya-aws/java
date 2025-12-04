@@ -8,7 +8,6 @@ pipeline {
     }
 
     environment {
-        // Trivy cache directory
         TRIVY_CACHE_DIR = "${JENKINS_HOME}/trivy-cache"
         NEXUS_URL  = "http://3.27.228.166:8081"
         NEXUS_REPO = "spring-boot-app"
@@ -80,26 +79,22 @@ pipeline {
         }
 
         stage('Scan Docker Image') {
-    steps {
-        sh """
-        mkdir -p $TRIVY_CACHE_DIR ~/trivy-tmp
-        chmod -R 755 $TRIVY_CACHE_DIR ~/trivy-tmp
-        export TMPDIR=~/trivy-tmp
-        trivy image --cache-dir $TRIVY_CACHE_DIR --exit-code 1 --severity HIGH,CRITICAL simplejavaproject:1.0.0
-        """
-    }
-}
+            steps {
+                sh """
+                mkdir -p $TRIVY_CACHE_DIR ~/trivy-tmp
+                chmod -R 755 $TRIVY_CACHE_DIR ~/trivy-tmp
+                export TMPDIR=~/trivy-tmp
+                trivy image --cache-dir $TRIVY_CACHE_DIR --exit-code 1 --severity HIGH,CRITICAL simplejavaproject:1.0.0
+                """
+            }
+        }
 
+    } // end of stages
 
     post {
         always {
             deleteDir() // Clean workspace
         }
         success {
-            echo 'Build, Nexus deploy, Docker build, and Trivy scan completed successfully.'
-        }
-        failure {
-            echo 'Build, Nexus deploy, Docker build, or Trivy scan failed. Check logs.'
-        }
-    }
-}
+            echo 'Build, Nexus deploy, Docker build, and Triv
+
