@@ -7,12 +7,12 @@
 
     <!-- Project coordinates -->
     <groupId>com.saranya</groupId>
-    <artifactId>SimpleJavaProject</artifactId>
+    <artifactId>simplejavaproject</artifactId>
      <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>SimpleJavaproject</name>
-    <description>Simple Javaproject  with Docker support</description>
+    <name>simplejavaproject</name>
+    <description>simple javaproject  with Docker support</description>
 
     <!-- Java version -->
     <properties>
