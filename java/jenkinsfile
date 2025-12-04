@@ -108,6 +108,36 @@ pipeline {
                 sh "rm -rf $TRIVY_CACHE_DIR/*"
             }
         }
+        stage('Update Deployment File') {
+            environment {
+                GIT_REPO_NAME = "java"
+                GIT_USER_NAME = "saranya-aws"
+            }
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'git', usernameVariable: 'GIT_USER', 
+                passwordVariable: 'GIT_TOKEN')]) {
+                    sh """
+                        echo 'Update Deployment File...'
+                        git config user.email "rsaranyaa.ece@gmail.com"
+                        git config user.name "saranya-aws"
+						PREVIOUS_BUILD_NUMBER=\$((BUILD_NUMBER - 1))
+                        sed -i "s|saranya/java:\${PREVIOUS_BUILD_NUMBER}|saranya/java:${BUILD_NUMBER}|g" java-manifests/deployment.yaml
+                        git pull origin main
+                        git add .
+                        git commit -m "Update deployment image to version ${BUILD_NUMBER}" || echo "No changes to commit"
+                        git push https://\$GIT_USER:\$GIT_TOKEN@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME}.git HEAD:main
+                    """
+                }
+            }
+        }
+		stage('Remove Local Docker Image') {
+            steps {
+                echo 'Removing Docker image from local...'
+                sh '''
+                   docker rmi ${DOCKER_IMAGE} || true
+                '''
+            }
+        }
     } // End of stages
 
     post {
