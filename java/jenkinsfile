@@ -65,4 +65,22 @@ pipeline {
         }
     }
 }
+stage('Build Docker Image') {
+    steps {
+        dir('java') {
+            script {
+                sh "docker build -t simplejavaproject:1.0.0 ."
+            }
+        }
+    }
+}
+
+stage('Scan Docker Image') {
+    steps {
+        script {
+            sh "trivy image --exit-code 1 --severity HIGH,CRITICAL simplejavaproject:1.0.0"
+        }
+    }
+}
+
 
