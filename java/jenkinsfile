@@ -10,7 +10,7 @@ pipeline {
         NEXUS_URL  = "http://3.106.240.180:8081"
         NEXUS_REPO = "spring-boot-app"
         GROUP_ID   = "com.saranya"
-        CRED_ID    = "nexus-credentials" // Make sure this matches Jenkins
+        CRED_ID    = "nexus-cred" // Make sure this matches Jenkins
     }
 
     stages {
