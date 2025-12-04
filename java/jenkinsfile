@@ -98,7 +98,16 @@ pipeline {
             }
         }
     }
-
+ stage('Push Image') {
+            steps {
+                echo 'Pushing Docker image to registry...'
+                script {
+                    def dockerImage = docker.image("${DOCKER_IMAGE}")
+                    docker.withRegistry('https://index.docker.io/v1/', 'jenkins-push') {
+                        dockerImage.push()
+                    }
+                }
+            }
     post {
         always {
             deleteDir() // Clean workspace after build
