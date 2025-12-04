@@ -121,7 +121,7 @@ pipeline {
                         git config user.email "rsaranyaa.ece@gmail.com"
                         git config user.name "saranya-aws"
 						PREVIOUS_BUILD_NUMBER=\$((BUILD_NUMBER - 1))
-                        sed -i "s|saranya/java:\${PREVIOUS_BUILD_NUMBER}|saranya/java:${BUILD_NUMBER}|g" java-manifests/deployment.yaml
+                        sed -i "s|saranyamagi/simplejavaproject:\${PREVIOUS_BUILD_NUMBER}|saranyamagi/simplejavaproject:${BUILD_NUMBER}|g" java-manifests/deployment.yaml
                         git pull origin main
                         git add .
                         git commit -m "Update deployment image to version ${BUILD_NUMBER}" || echo "No changes to commit"
