@@ -6,7 +6,15 @@ pipeline {
         jdk 'Java17'
     }
 
+    environment {
+        NEXUS_URL        = "http://3.106.240.180:8081"
+        NEXUS_REPO       = "spring-boot-app"
+        GROUP_ID         = "com.saranya"
+        CRED_ID          = "nexus-credentials"
+    }
+
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -15,7 +23,7 @@ pipeline {
 
         stage('Build with Maven') {
             steps {
-                dir('java') {    // This is the folder containing pom.xml
+                dir('java') {
                     sh 'mvn clean package'
                 }
             }
@@ -26,5 +34,35 @@ pipeline {
                 archiveArtifacts artifacts: 'java/target/*.jar', fingerprint: true
             }
         }
+
+        stage('Upload to Nexus') {
+            steps {
+                script {
+                    def artifact = sh(
+                        script: "ls java/target/*.jar | head -1",
+                        returnStdout: true
+                    ).trim()
+
+                    withCredentials([usernamePassword(
+                        credentialsId: CRED_ID,
+                        usernameVariable: 'NEXUS_USER',
+                        passwordVariable: 'NEXUS_PASS'
+                    )]) {
+
+                        sh """
+                        curl -v -u $NEXUS_USER:$NEXUS_PASS \
+                        -F maven2.groupId=$GROUP_ID \
+                        -F maven2.artifactId=java-app \
+                        -F maven2.version=1.0.0 \
+                        -F maven2.generate-pom=true \
+                        -F maven2.asset=@${artifact} \
+                        -F maven2.asset.extension=jar \
+                        $NEXUS_URL/service/rest/v1/components?repository=$NEXUS_REPO
+                        """
+                    }
+                }
+            }
+        }
     }
 }
+
