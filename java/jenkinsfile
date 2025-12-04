@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        NEXUS_URL  = "http://3.106.240.180:8081"
+        NEXUS_URL  = "http://3.106.122.202:8081"
         NEXUS_REPO = "spring-boot-app"
         GROUP_ID   = "com.saranya"
         CRED_ID    = "nexus-cred" // Make sure this matches Jenkins
