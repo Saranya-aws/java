@@ -7,18 +7,16 @@ pipeline {
     }
 
     environment {
-        NEXUS_URL        = "http://3.106.240.180:8081"
-        NEXUS_REPO       = "spring-boot-app"
-        GROUP_ID         = "com.saranya"
-        CRED_ID          = "nexus-cred"
+        NEXUS_URL  = "http://3.106.240.180:8081"
+        NEXUS_REPO = "spring-boot-app"
+        GROUP_ID   = "com.saranya"
+        CRED_ID    = "nexus-credentials" // Make sure this matches Jenkins
     }
 
     stages {
 
         stage('Checkout') {
-            steps {
-                checkout scm
-            }
+            steps { checkout scm }
         }
 
         stage('Build with Maven') {
@@ -48,11 +46,10 @@ pipeline {
                         usernameVariable: 'NEXUS_USER',
                         passwordVariable: 'NEXUS_PASS'
                     )]) {
-
                         sh """
                         curl -v -u $NEXUS_USER:$NEXUS_PASS \
                         -F maven2.groupId=$GROUP_ID \
-                        -F maven2.artifactId=SimpleJavaProject-app \
+                        -F maven2.artifactId=SimpleJavaProject \
                         -F maven2.version=1.0.0 \
                         -F maven2.generate-pom=true \
                         -F maven2.asset=@${artifact} \
@@ -63,24 +60,19 @@ pipeline {
                 }
             }
         }
-    }
-}
-stage('Build Docker Image') {
-    steps {
-        dir('java') {
-            script {
-                sh "docker build -t simplejavaproject:1.0.0 ."
+
+        stage('Build Docker Image') {
+            steps {
+                dir('java') {
+                    sh "docker build -t simplejavaproject:1.0.0 ."
+                }
+            }
+        }
+
+        stage('Scan Docker Image') {
+            steps {
+                sh "trivy image --exit-code 1 --severity HIGH,CRITICAL simplejavaproject:1.0.0"
             }
         }
     }
 }
-
-stage('Scan Docker Image') {
-    steps {
-        script {
-            sh "trivy image --exit-code 1 --severity HIGH,CRITICAL simplejavaproject:1.0.0"
-        }
-    }
-}
-
-
