@@ -6,7 +6,6 @@ pipeline {
         jdk 'Java17'
     }
 
-
     stages {
         stage('Checkout') {
             steps {
@@ -16,13 +15,15 @@ pipeline {
 
         stage('Build with Maven') {
             steps {
-                sh 'mvn clean package'
+                dir('java') {    // This is the folder containing pom.xml
+                    sh 'mvn clean package'
+                }
             }
         }
 
         stage('Archive Artifact') {
             steps {
-                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                archiveArtifacts artifacts: 'java/target/*.jar', fingerprint: true
             }
         }
     }
