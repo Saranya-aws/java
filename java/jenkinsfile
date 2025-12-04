@@ -10,7 +10,7 @@ pipeline {
         NEXUS_URL        = "http://3.106.240.180:8081"
         NEXUS_REPO       = "spring-boot-app"
         GROUP_ID         = "com.saranya"
-        CRED_ID          = "nexus-credentials"
+        CRED_ID          = "nexus-cred"
     }
 
     stages {
