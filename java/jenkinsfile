@@ -10,14 +10,18 @@ pipeline {
     environment {
         // Trivy cache directory
         TRIVY_CACHE_DIR = "${JENKINS_HOME}/trivy-cache"
-        NEXUS_URL  = "http://3.27.228.166:8081"
-        NEXUS_REPO = "spring-boot-app"
-        GROUP_ID   = "com.saranya"
-        CRED_ID    = "nexus-cred"   // Nexus credentials ID
-        DOCKER_REG  = "your-docker-registry" // e.g., docker.io/username
+
+        // Nexus settings
+        NEXUS_URL      = "http://3.27.228.166:8081"
+        NEXUS_REPO     = "spring-boot-app"
+        GROUP_ID       = "com.saranya"
+        CRED_ID        = "nexus-cred"   // Nexus credentials ID
+
+        // Docker settings
+        DOCKER_REG     = "your-docker-registry" // e.g., docker.io/username
         DOCKER_CRED_ID = "dockerhub-cred"       // Docker credentials ID
-        IMAGE_NAME  = "simplejavaproject"
-        IMAGE_TAG   = "1.0.0"
+        IMAGE_NAME     = "simplejavaproject"
+        IMAGE_TAG      = "1.0.0"
     }
 
     options {
@@ -64,7 +68,7 @@ pipeline {
                         curl -v -u $NEXUS_USER:$NEXUS_PASS \\
                         -F maven2.groupId=$GROUP_ID \\
                         -F maven2.artifactId=SimpleJavaProject \\
-                        -F maven2.version=1.0.0 \\
+                        -F maven2.version=$IMAGE_TAG \\
                         -F maven2.generate-pom=true \\
                         -F maven2.asset=@${artifact} \\
                         -F maven2.asset.extension=jar \\
@@ -78,7 +82,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 dir('java') {
-                    sh "docker build -t $IMAGE_NAME:$IMAGE_TAG ."
+                    sh "docker build -t $DOCKER_REG/$IMAGE_NAME:$IMAGE_TAG ."
                 }
             }
         }
@@ -89,28 +93,22 @@ pipeline {
                 mkdir -p $TRIVY_CACHE_DIR ~/trivy-tmp
                 chmod -R 755 $TRIVY_CACHE_DIR ~/trivy-tmp
                 export TMPDIR=~/trivy-tmp
-                trivy image --cache-dir $TRIVY_CACHE_DIR --exit-code 1 --severity HIGH,CRITICAL $IMAGE_NAME:$IMAGE_TAG
+                trivy image --cache-dir $TRIVY_CACHE_DIR --exit-code 1 --severity HIGH,CRITICAL $DOCKER_REG/$IMAGE_NAME:$IMAGE_TAG
                 """
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: DOCKER_CRED_ID,
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
-                    sh """
-                    echo $DOCKER_PASS | docker login $DOCKER_REG -u $DOCKER_USER --password-stdin
-                    docker tag $IMAGE_NAME:$IMAGE_TAG $DOCKER_REG/$IMAGE_NAME:$IMAGE_TAG
-                    docker push $DOCKER_REG/$IMAGE_NAME:$IMAGE_TAG
-                    docker logout $DOCKER_REG
-                    """
+                echo 'Pushing Docker image to registry...'
+                script {
+                    def dockerImage = docker.image("$DOCKER_REG/$IMAGE_NAME:$IMAGE_TAG")
+                    docker.withRegistry("https://index.docker.io/v1/", DOCKER_CRED_ID) {
+                        dockerImage.push()
+                    }
                 }
             }
         }
-
     }
 
     post {
@@ -125,3 +123,4 @@ pipeline {
         }
     }
 }
+
