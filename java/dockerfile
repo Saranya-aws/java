@@ -5,7 +5,7 @@ FROM eclipse-temurin:17-jdk
 WORKDIR /app
 
 # 3. Copy your .jar file from host to container
-COPY target/SimpleJavaProject-1.0.0.jar app.jar
+COPY target/simplejavaproject-1.0.0.jar app.jar
 
 # 4. Run the jar file when container starts
 ENTRYPOINT ["java", "-jar", "app.jar"]
