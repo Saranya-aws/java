@@ -1,3 +1,4 @@
+
 pipeline {
     agent any
 
@@ -7,32 +8,25 @@ pipeline {
     }
 
     environment {
-        // Safe Trivy cache location
-        TRIVY_CACHE_DIR = "${JENKINS_HOME}/caches/trivy"
-        TMPDIR = "${JENKINS_HOME}/tmp/trivy-tmp"  // Temporary files directory
+        // Trivy cache directory
+        TRIVY_CACHE_DIR = "${JENKINS_HOME}/trivy-cache"
         NEXUS_URL  = "http://3.106.122.202:8081"
         NEXUS_REPO = "spring-boot-app"
         GROUP_ID   = "com.saranya"
-        CRED_ID    = "nexus-cred" // Make sure this matches Jenkins
+        CRED_ID    = "nexus-cred" // Jenkins credentials ID
     }
 
     options {
-        // Keep only last 5 builds
         buildDiscarder(logRotator(numToKeepStr: '5'))
         timeout(time: 30, unit: 'MINUTES')
     }
 
     stages {
-        stage('Prepare Directories') {
-            steps {
-                script {
-                    sh "mkdir -p $TRIVY_CACHE_DIR $TMPDIR"
-                }
-            }
-        }
 
         stage('Checkout') {
-            steps { checkout scm }
+            steps { 
+                checkout scm 
+            }
         }
 
         stage('Build with Maven') {
@@ -88,29 +82,17 @@ pipeline {
         stage('Scan Docker Image') {
             steps {
                 sh """
-                export TMPDIR=$TMPDIR
-                trivy image \
-                    --cache-dir $TRIVY_CACHE_DIR \
-                    --exit-code 1 \
-                    --severity HIGH,CRITICAL \
-                    simplejavaproject:1.0.0
+                mkdir -p $TRIVY_CACHE_DIR
+                chmod -R 755 $TRIVY_CACHE_DIR
+                trivy image --cache-dir $TRIVY_CACHE_DIR --exit-code 1 --severity HIGH,CRITICAL simplejavaproject:1.0.0
                 """
             }
         }
     }
- stage('Push Image') {
-            steps {
-                echo 'Pushing Docker image to registry...'
-                script {
-                    def dockerImage = docker.image("${DOCKER_IMAGE}")
-                    docker.withRegistry('https://index.docker.io/v1/', 'jenkins-push') {
-                        dockerImage.push()
-                    }
-                }
-            }
+
     post {
         always {
-            deleteDir() // Clean workspace after build
+            deleteDir() // Clean workspace
         }
         success {
             echo 'Build, Nexus deploy, Docker build, and Trivy scan completed successfully.'
