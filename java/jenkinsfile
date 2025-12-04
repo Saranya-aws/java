@@ -80,15 +80,16 @@ pipeline {
         }
 
         stage('Scan Docker Image') {
-            steps {
-                sh """
-                mkdir -p $TRIVY_CACHE_DIR
-                chmod -R 755 $TRIVY_CACHE_DIR
-                trivy image --cache-dir $TRIVY_CACHE_DIR --exit-code 1 --severity HIGH,CRITICAL simplejavaproject:1.0.0
-                """
-            }
-        }
+    steps {
+        sh """
+        mkdir -p $TRIVY_CACHE_DIR ~/trivy-tmp
+        chmod -R 755 $TRIVY_CACHE_DIR ~/trivy-tmp
+        export TMPDIR=~/trivy-tmp
+        trivy image --cache-dir $TRIVY_CACHE_DIR --exit-code 1 --severity HIGH,CRITICAL simplejavaproject:1.0.0
+        """
     }
+}
+
 
     post {
         always {
