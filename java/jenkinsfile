@@ -114,7 +114,7 @@ pipeline {
                 GIT_USER_NAME = "saranya-aws"
             }
             steps {
-                withCredentials([usernamePassword(credentialsId: 'git', usernameVariable: 'GIT_USER', 
+                withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GIT_USER', 
                 passwordVariable: 'GIT_TOKEN')]) {
                     sh """
                         echo 'Update Deployment File...'
