@@ -10,7 +10,7 @@ pipeline {
     environment {
         TRIVY_CACHE_DIR = "${JENKINS_HOME}/trivy-cache"
         NEXUS_URL       = "http://3.106.193.94:8081"
-        NEXUS_REPO      = "spring-boot-app"
+        NEXUS_REPO      = "java"
         GROUP_ID        = "com.saranya"
         CRED_ID         = "nexus-cred"
         DOCKER_REG      = "saranyamagi"
