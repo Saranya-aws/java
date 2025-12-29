@@ -8,11 +8,11 @@
     <!-- Project coordinates -->
     <groupId>com.saranya</groupId>
     <artifactId>simplejavaproject</artifactId>
-     <version>1.0.0</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>simplejavaproject</name>
-    <description>simple javaproject  with Docker support</description>
+    <description>Simple Java project with Docker support</description>
 
     <!-- Java version -->
     <properties>
@@ -33,7 +33,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Jar plugin to make executable jar -->
+            <!-- Jar plugin (optional, for basic jar) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -46,19 +46,33 @@
                     </archive>
                 </configuration>
             </plugin>
+
+            <!-- Shade plugin to create executable jar with all classes -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.4.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.saranya.HelloWorld</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
-    <!-- Dependencies (none for now, add if needed) -->
     <dependencies>
-        <!-- Example dependency:
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.13.0</version>
-        </dependency>
-        -->
+        <!-- Add dependencies here if needed -->
     </dependencies>
 
 </project>
-
