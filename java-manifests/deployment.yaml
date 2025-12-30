@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: java
-          image: saranyamagi/simplejavaproject:1.0.0
+          image: saranyamagi/simplejavaproject:1.0.2
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
